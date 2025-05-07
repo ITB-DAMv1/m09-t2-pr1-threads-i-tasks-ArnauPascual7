@@ -89,6 +89,8 @@ namespace Part1_Threads
                 Console.WriteLine($"Comensal {i} - {kings[i].MaxHungryTime} milisegons és el temps màxim que ha passat fam");
                 Console.ResetColor();
             }
+
+            DinnerHelper.WriteStaticsFile(kings);
         }
     }
 }
