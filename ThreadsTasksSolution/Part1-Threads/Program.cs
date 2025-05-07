@@ -15,7 +15,7 @@ namespace Part1_Threads
 
         public static void Main(string[] args)
         {
-            Thread[] kings = new Thread[NUMBER_OF_KINGS];
+            King[] kings = new King[NUMBER_OF_KINGS];
             Chopstick[] chopsticks = new Chopstick[NUMBER_OF_CHOPSTICKS];
             int milliseconds = 0;
 
@@ -33,6 +33,8 @@ namespace Part1_Threads
                 Thread king = new Thread(() =>
                 {
                     King king = new King(id, leftChopstickId, rightChopstickId, kingsColors[id >= kingsColors.Length ? 0 : id]);
+                    kings[id] = king;
+
                     while (run)
                     {
                         king.Think();
@@ -57,8 +59,6 @@ namespace Part1_Threads
                         }
                     }
                 });
-
-                kings[id] = king;
                 king.Start();
             }
 
@@ -71,6 +71,23 @@ namespace Part1_Threads
                 {
                     run = false;
                 }
+            }
+
+            Thread.Sleep(4000);
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\nEstadístiques");
+            for (int i = 0; i < NUMBER_OF_KINGS; i++)
+            {
+                Console.ForegroundColor = kings[i].Color;
+                if (kings[i].Color == ConsoleColor.Black)
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                }
+                Console.WriteLine($"\nComensal {i} - Ha menjat {kings[i].EatTimes} vegades");
+                Console.WriteLine($"Comensal {i} - Ha passat fam durant {kings[i].TotalHungryTime} milisegons");
+                Console.WriteLine($"Comensal {i} - {kings[i].MaxHungryTime} milisegons és el temps màxim que ha passat fam");
+                Console.ResetColor();
             }
         }
     }

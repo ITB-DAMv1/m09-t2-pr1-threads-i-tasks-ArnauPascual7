@@ -22,6 +22,7 @@ namespace Part1_Threads.Models
         public TimeOnly RequestTime { get; set; }
         public TimeOnly LastEatTime { get; set; }
         public int MaxHungryTime { get; set; }
+        public int TotalHungryTime { get; set; } = 0;
         public int EatTimes { get; set; } = 0;
 
         public King(int id, int leftChopstickId, int rightChopstickId, ConsoleColor color)
@@ -53,7 +54,11 @@ namespace Part1_Threads.Models
             EatTimes++;
 
             LastEatTime = DinnerHelper.GetCurrentTime();
-            if ((LastEatTime - RequestTime).Milliseconds > MaxHungryTime)
+
+            int hungryTime = (LastEatTime - RequestTime).Milliseconds;
+            TotalHungryTime += hungryTime;
+
+            if (hungryTime > MaxHungryTime)
             {
                 MaxHungryTime = LastEatTime.Millisecond;
             }
