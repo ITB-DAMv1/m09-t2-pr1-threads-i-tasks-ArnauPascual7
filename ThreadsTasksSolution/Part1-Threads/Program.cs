@@ -34,7 +34,9 @@ namespace Part1_Threads
                     while (run)
                     {
                         king.Think();
+
                         king.RequestTime = DinnerHelper.GetCurrentTime();
+
                         king.RequestLeftChopstick();
                         lock (chopsticks[leftChopstickId])
                         {
@@ -42,12 +44,14 @@ namespace Part1_Threads
                             lock (chopsticks[rightChopstickId])
                             {
                                 king.Eat();
+
                                 if (king.MaxHungryTime > MAX_HUNGRY_TIME)
                                 {
                                     run = false;
                                 }
+
+                                king.ReleaseChopsticks();
                             }
-                            king.ReleaseChopsticks();
                         }
                     }
                 });
