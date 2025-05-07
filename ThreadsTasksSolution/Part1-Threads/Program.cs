@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net.NetworkInformation;
 using Part1_Threads.Models;
 using Part1_Threads.Tools;
 
@@ -17,7 +18,6 @@ namespace Part1_Threads
         {
             King[] kings = new King[NUMBER_OF_KINGS];
             Chopstick[] chopsticks = new Chopstick[NUMBER_OF_CHOPSTICKS];
-            int milliseconds = 0;
 
             for (int i = 0; i < NUMBER_OF_CHOPSTICKS; i++)
             {
@@ -62,35 +62,28 @@ namespace Part1_Threads
                 king.Start();
             }
 
+            ProgramTimer();
+
+            Thread.Sleep(4000);
+
+            DinnerHelper.WriteStaticsConsole(kings);
+            DinnerHelper.WriteStaticsFile(kings);
+        }
+
+        private static void ProgramTimer()
+        {
+            int milliseconds = 0;
+
             while (run)
             {
                 Thread.Sleep(1000);
                 milliseconds += 1000;
-                
+
                 if (milliseconds >= MAX_TIME)
                 {
                     run = false;
                 }
             }
-
-            Thread.Sleep(4000);
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\nEstadístiques");
-            for (int i = 0; i < NUMBER_OF_KINGS; i++)
-            {
-                Console.ForegroundColor = kings[i].Color;
-                if (kings[i].Color == ConsoleColor.Black)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                }
-                Console.WriteLine($"\nComensal {i} - Ha menjat {kings[i].EatTimes} vegades");
-                Console.WriteLine($"Comensal {i} - Ha passat fam durant {kings[i].TotalHungryTime} milisegons");
-                Console.WriteLine($"Comensal {i} - {kings[i].MaxHungryTime} milisegons és el temps màxim que ha passat fam");
-                Console.ResetColor();
-            }
-
-            DinnerHelper.WriteStaticsFile(kings);
         }
     }
 }

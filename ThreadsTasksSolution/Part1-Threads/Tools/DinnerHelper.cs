@@ -33,6 +33,26 @@ namespace Part1_Threads.Tools
             return TimeOnly.FromDateTime(DateTime.Now);
         }
 
+        public static void WriteStaticsConsole(King[] kings)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\nEstadístiques");
+
+            for (int i = 0; i < kings.Length; i++)
+            {
+                Console.ForegroundColor = kings[i].Color;
+                if (kings[i].Color == ConsoleColor.Black)
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                }
+
+                Console.WriteLine($"\nComensal {i} - Ha menjat {kings[i].EatTimes} vegades");
+                Console.WriteLine($"Comensal {i} - Ha passat fam durant {kings[i].TotalHungryTime} milisegons");
+                Console.WriteLine($"Comensal {i} - {kings[i].MaxHungryTime} milisegons és el temps màxim que ha passat fam");
+                Console.ResetColor();
+            }
+        }
+
         public static void WriteStaticsFile(King[] kings)
         {
             const string FileName = "statics.csv";
