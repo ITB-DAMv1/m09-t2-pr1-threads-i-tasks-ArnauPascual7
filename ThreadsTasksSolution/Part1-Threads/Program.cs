@@ -1,4 +1,5 @@
-﻿using Part1_Threads.Models;
+﻿using System.Diagnostics;
+using Part1_Threads.Models;
 using Part1_Threads.Tools;
 
 namespace Part1_Threads
@@ -16,6 +17,7 @@ namespace Part1_Threads
         {
             Thread[] kings = new Thread[NUMBER_OF_KINGS];
             Chopstick[] chopsticks = new Chopstick[NUMBER_OF_CHOPSTICKS];
+            int milliseconds = 0;
 
             for (int i = 0; i < NUMBER_OF_CHOPSTICKS; i++)
             {
@@ -60,8 +62,16 @@ namespace Part1_Threads
                 king.Start();
             }
 
-            Thread.Sleep(MAX_TIME);
-            run = false;
+            while (run)
+            {
+                Thread.Sleep(1000);
+                milliseconds += 1000;
+                
+                if (milliseconds >= MAX_TIME)
+                {
+                    run = false;
+                }
+            }
         }
     }
 }
