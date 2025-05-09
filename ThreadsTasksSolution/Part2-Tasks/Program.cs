@@ -55,10 +55,21 @@ namespace Part2_Tasks
                         break;
                 }
 
+                if (position.X < 1)
+                    position.X = 1;
+                else if (position.X >= WINDOW_WIDTH)
+                    position.X = WINDOW_WIDTH - 1;
+
                 WriteSprite(spaceship.Sprite, spaceship.Position, position);
 
                 spaceship.Position = position;
             }
+        }
+
+        public static void WriteSprite(char sprite, Position oldPosition, Position newPosition)
+        {
+            CleanSprite(oldPosition);
+            WriteSprite(sprite, newPosition);
         }
 
         public static void WriteSprite(char sprite, Position position)
@@ -66,12 +77,10 @@ namespace Part2_Tasks
             Console.SetCursorPosition(position.X, position.Y);
             Console.Write(sprite);
         }
-        public static void WriteSprite(char sprite, Position oldPosition, Position newPosition)
+        public static void CleanSprite(Position position)
         {
-            Console.SetCursorPosition(oldPosition.X, oldPosition.Y);
+            Console.SetCursorPosition(position.X, position.Y);
             Console.Write(' ');
-            Console.SetCursorPosition(newPosition.X, newPosition.Y);
-            Console.Write(sprite);
         }
     }
 }
