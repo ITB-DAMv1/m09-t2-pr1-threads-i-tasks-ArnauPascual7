@@ -249,6 +249,7 @@ class Program
 ```
 
 > **Explica'm el codi pas a pas**
+> 
 > Resposta
 ```
 private const int WINDOW_WIDTH = 40;
@@ -425,9 +426,11 @@ public static void WriteSprite(char sprite, Position position)
 
 > Escriu el caràcter de la nau a la posició indicada, només si és dins dels límits de la pantalla.
 
-> **Que es deltaTime**
+> **Que es deltaTime?**
+> 
 > DeltaTime (o tiempo delta) es el tiempo transcurrido entre una actualización y la siguiente en un juego o simulación. Es decir, es la diferencia de tiempo entre el último fotograma (frame) y el actual. Se utiliza para que el movimiento y las animaciones sean independientes de la velocidad de refresco del hardware o del número de frames por segundo (FPS). Por ejemplo, si un objeto debe moverse a 100 píxeles por segundo, multiplicarás esa velocidad por el valor de deltaTime para saber cuánto debe moverse en cada frame, asegurando así que se mueva igual de rápido aunque el juego vaya más lento o más rápido. Ejemplo práctico: Si un frame tarda 0,01 segundos (100 FPS), deltaTime será 0,01. Si tarda 0,1 segundos (10 FPS), deltaTime será 0,1. Así, el movimiento se ajusta automáticamente para que la experiencia sea consistente, sin importar el rendimiento del ordenador. En resumen: DeltaTime sirve para que la lógica y los movimientos de un juego sean consistentes y no dependan de la cantidad de frames por segundo que se estén generando.
 
 > **Has utilitzat això, que és? newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);**
+> 
 > Sí! Aquesta línia utilitza el mètode estàtic Math.Clamp de .NET per limitar el valor de newPos.X dins d’un rang concret. Què fa exactament? newPos.X: És la posició X (horitzontal) de la nau o objecte. Math.Clamp(valor, mínim, màxim): Retorna valor si està dins del rang [mínim, màxim]. Si valor és menor que mínim, retorna mínim. Si és major que màxim, retorna màxim. En aquest context 1: És el límit esquerre de la pantalla (per evitar sortir per l’esquerra). WINDOW_WIDTH - 2: És el límit dret de la pantalla (per evitar sortir per la dreta). Així, si l’usuari intenta moure la nau més enllà dels límits, la posició quedarà automàticament dins dels marges vàlids. Exemple visual: Si newPos.X = -5, després de la línia serà 1. Si newPos.X = 38 (amb WINDOW_WIDTH = 40), després serà 38. Si newPos.X = 100, després serà 38. Resu Math.Clamp serveix per assegurar que una variable no surti d’un rang permès. Això evita errors de posició i que la nau desaparegui de la pantalla!
 
