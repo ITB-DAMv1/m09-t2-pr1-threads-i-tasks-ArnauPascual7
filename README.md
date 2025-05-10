@@ -20,7 +20,28 @@ El record de vegades que ha mejat un comesal és de 15 vegades, mentre que el re
 
 ## Part2
 
+El projecte només conté la carpeta de Models, que conté els models utilitzats per al programa, Spaceship, Asteroid i l'estructura Position.
 
+La classe Spaceship té tots els atributs per a poder moure la nau i comptar els seus punts al esquivar asterides, a més del seu sprite.
+
+La classe Asteroid té tots els atributs per a poder moure aquests, també té un atribut d'acceleració per a que l'asteroide no es pugui moure molt ràpid, a més del seu sprite.
+
+L'estructura Position és per a deteerminar la posició en la consola dels objectes de la nau i l'asteroid, aquesta conté atribut per l'eix x i un per l'y.
+
+La nau és mou amb les tecles A i D, i al esquivar un asteroid se li suma un punt, però al xocar amb un el joc acaba, si la nau passa just per al costat d'un asteroid també se li suma un punt.
+
+El joc acaba quan la nau xoca amb un asteroid o es prem la tecla Q. En acabar el joc es mostra una pantalla de resultat amb unes dades sobre la partida, aquí podem sortir del programa presionant qualsevol tecla o tornar a jugar amb Enter.
+
+Hi ha 5 Tasks:
+- ConsoleSize: Per a controlar el tamany de la consola, si s'intenta modificar el tamany de la consola aquesta tornarà al seu estat original.
+- ProcessInput: Controla els imputs de l'usuari, per si a premut A o D per moure's o Q per a sortir del joc.
+- SpawnAsteroids: Genera els asteroides que l'usuari ha d'esquivar, només els genera, no els printa per consola.
+- GameLoop: Cada 50Hz s'executa una actualització de la lògica del programa, en aquest cas la caiguda dels asteroids, fa que els asteroids baixin per la consola, només canvia la seva posició, no els printa.
+- RenderLoop: Cada 20Hz s'executa una actualització de tots els sprites que es troben en la consola, s'esborra tota la consola i es printa la posició de cada element en la consola.
+
+Totes les Tasks s'executen a la vegada mentre la condició de que el joc contiuï funcionant es compleixi.
+
+La difrència entre progrmació paral·lela i asícncrona, és que la paral·lela tracte de realitzar múltiples coses alhora, mentre que l'asícrona tracte de no esperar a que aquestes coses acabin per a començar unes altres de noves.
 
 ## Bibliografía
 
