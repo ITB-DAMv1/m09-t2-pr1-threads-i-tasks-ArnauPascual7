@@ -9,6 +9,7 @@ namespace Part2_Tasks
         private const int WINDOW_HEIGHT = 20;
         private static bool checkWindowSize = true;
         private static bool gameRunning = true;
+        private static bool gameOver = false;
         private static Spaceship spaceship;
         private static List<Asteroid> asteroids = new List<Asteroid>();
 
@@ -36,6 +37,17 @@ namespace Part2_Tasks
             var renderTask = Task.Run(RenderLoop);
 
             await Task.WhenAll(inputTask, updateTask, renderTask);
+
+            if (gameOver)
+            {
+                lock (consoleLock)
+                {
+                    Console.Clear();
+                    Console.SetCursorPosition(0, 0);
+                    Console.WriteLine("Has perdut!");
+                    Console.ReadKey(true);
+                }
+            }
         }
 
         private static async Task GameLoop()
@@ -113,7 +125,7 @@ namespace Part2_Tasks
             {
                 case ConsoleKey.A: newPos.X--; break;
                 case ConsoleKey.D: newPos.X++; break;
-                case ConsoleKey.Escape: gameRunning = false; break;
+                case ConsoleKey.Q: gameRunning = false; break;
             }
 
             newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);
@@ -159,6 +171,7 @@ namespace Part2_Tasks
                         if (spaceship.Position.X == asteroid.Position.X && spaceship.Position.Y == asteroid.Position.Y)
                         {
                             gameRunning = false;
+                            gameOver = true;
                         }
                     }
                 }
