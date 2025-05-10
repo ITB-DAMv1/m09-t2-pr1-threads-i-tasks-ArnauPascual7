@@ -155,6 +155,11 @@ namespace Part2_Tasks
 
                         asteroid.Position = newPos;
                         asteroid.Accel = accel;
+
+                        if (spaceship.Position.X == asteroid.Position.X && spaceship.Position.Y == asteroid.Position.Y)
+                        {
+                            gameRunning = false;
+                        }
                     }
                 }
                 asteroids.RemoveAll(a => a.Position.Y >= WINDOW_HEIGHT);
