@@ -1,4 +1,5 @@
-﻿using Part2_Tasks.Models;
+﻿using System.Diagnostics;
+using Part2_Tasks.Models;
 
 namespace Part2_Tasks
 {
@@ -10,18 +11,82 @@ namespace Part2_Tasks
         private static bool gameRunning = true;
         private static Spaceship spaceship;
 
-        public static void Main(string[] args)
+        private static Stopwatch gameClock = new Stopwatch();
+        private static TimeSpan lastRender;
+        private static TimeSpan lastUpdate;
+        private static readonly object consoleLock = new object();
+
+        public static async Task Main(string[] args)
         {
             Console.Title = "Asterioids - Arnau Pascual";
             Console.CursorVisible = false;
 
             spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
-            WriteSprite(spaceship.Sprite, spaceship.Position);
 
-            Task.Run(ConsoleSize);
-            Task.Run(SpaceshipMovement);
+            gameClock.Start();
+            lastRender = gameClock.Elapsed;
+            lastUpdate = gameClock.Elapsed;
 
-            while (gameRunning) { }
+            var consoleTask = Task.Run(ConsoleSize);
+            var inputTask = Task.Run(ProcessInput);
+            var updateTask = Task.Run(GameLoop);
+            var renderTask = Task.Run(RenderLoop);
+
+            await Task.WhenAll(inputTask, updateTask, renderTask);
+        }
+
+        private static async Task GameLoop()
+        {
+            const double updateInterval = 1000 / 50.0;
+
+            while (gameRunning)
+            {
+                var currentTime = gameClock.Elapsed;
+                var deltaTime = currentTime - lastUpdate;
+
+                if (deltaTime.TotalMilliseconds >= updateInterval)
+                {
+                    UpdateGame(deltaTime);
+                    lastUpdate = currentTime;
+                }
+
+                await Task.Delay(1);
+            }
+        }
+
+        private static async Task RenderLoop()
+        {
+            const double renderInterval = 1000 / 20.0;
+
+            while (gameRunning)
+            {
+                var currentTime = gameClock.Elapsed;
+                var deltaTime = currentTime - lastRender;
+
+                if (deltaTime.TotalMilliseconds >= renderInterval)
+                {
+                    lock (consoleLock)
+                    {
+                        RenderGame();
+                    }
+                    lastRender = currentTime;
+                }
+
+                await Task.Delay(1);
+            }
+        }
+
+        private static async Task ProcessInput()
+        {
+            while (gameRunning)
+            {
+                if (Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(true).Key;
+                    HandleInput(key);
+                }
+                await Task.Delay(10);
+            }
         }
 
         public static async Task ConsoleSize()
@@ -37,50 +102,41 @@ namespace Part2_Tasks
             }
         }
 
-        public static async Task SpaceshipMovement()
+        private static void HandleInput(ConsoleKey key)
         {
-            Position position = spaceship.Position;
+            Position newPos = spaceship.Position;
 
-            while (gameRunning)
+            switch (key)
             {
-                ConsoleKey key = Console.ReadKey(true).Key;
-
-                switch (key)
-                {
-                    case ConsoleKey.A:
-                        position.X--;
-                        break;
-                    case ConsoleKey.D:
-                        position.X++;
-                        break;
-                }
-
-                if (position.X < 1)
-                    position.X = 1;
-                else if (position.X >= WINDOW_WIDTH)
-                    position.X = WINDOW_WIDTH - 1;
-
-                WriteSprite(spaceship.Sprite, spaceship.Position, position);
-
-                spaceship.Position = position;
+                case ConsoleKey.A: newPos.X--; break;
+                case ConsoleKey.D: newPos.X++; break;
+                case ConsoleKey.Escape: gameRunning = false; break;
             }
+
+            newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);
+            spaceship.Position = newPos;
         }
 
-        public static void WriteSprite(char sprite, Position oldPosition, Position newPosition)
+        private static void UpdateGame(TimeSpan deltaTime)
         {
-            CleanSprite(oldPosition);
-            WriteSprite(sprite, newPosition);
+            // Logic
+        }
+
+        private static void RenderGame()
+        {
+            Console.SetCursorPosition(0, 0);
+            Console.Clear();
+            WriteSprite(spaceship.Sprite, spaceship.Position);
         }
 
         public static void WriteSprite(char sprite, Position position)
         {
-            Console.SetCursorPosition(position.X, position.Y);
-            Console.Write(sprite);
-        }
-        public static void CleanSprite(Position position)
-        {
-            Console.SetCursorPosition(position.X, position.Y);
-            Console.Write(' ');
+            if (position.X >= 0 && position.X < WINDOW_WIDTH &&
+                position.Y >= 0 && position.Y < WINDOW_HEIGHT)
+            {
+                Console.SetCursorPosition(position.X, position.Y);
+                Console.Write(sprite);
+            }
         }
     }
 }
