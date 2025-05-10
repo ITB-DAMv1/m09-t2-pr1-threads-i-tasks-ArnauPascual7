@@ -7,15 +7,20 @@ namespace Part2_Tasks
     {
         private const int WINDOW_WIDTH = 40;
         private const int WINDOW_HEIGHT = 20;
+        private const int MAX_GAME_TIME = 60000;
+
         private static bool checkWindowSize = true;
         private static bool gameRunning = true;
         private static bool gameOver = false;
+        private static bool gameQuit = false;
+
         private static Spaceship spaceship;
         private static List<Asteroid> asteroids = new List<Asteroid>();
 
         private static Stopwatch gameClock = new Stopwatch();
         private static TimeSpan lastRender;
         private static TimeSpan lastUpdate;
+
         private static readonly object consoleLock = new object();
         private static readonly object asteroidLock = new object();
 
@@ -36,18 +41,9 @@ namespace Part2_Tasks
             var updateTask = Task.Run(GameLoop);
             var renderTask = Task.Run(RenderLoop);
 
-            await Task.WhenAll(inputTask, updateTask, renderTask);
+            await Task.WhenAll(inputTask, spawnTask, updateTask, renderTask);
 
-            if (gameOver)
-            {
-                lock (consoleLock)
-                {
-                    Console.Clear();
-                    Console.SetCursorPosition(0, 0);
-                    Console.WriteLine("Has perdut!");
-                    Console.ReadKey(true);
-                }
-            }
+            ResultsScreen();
         }
 
         private static async Task GameLoop()
@@ -63,6 +59,9 @@ namespace Part2_Tasks
                 {
                     UpdateGame(deltaTime);
                     lastUpdate = currentTime;
+
+                    if (gameClock.ElapsedMilliseconds > MAX_GAME_TIME)
+                        gameRunning = false;
                 }
 
                 await Task.Delay(1);
@@ -123,9 +122,16 @@ namespace Part2_Tasks
 
             switch (key)
             {
-                case ConsoleKey.A: newPos.X--; break;
-                case ConsoleKey.D: newPos.X++; break;
-                case ConsoleKey.Q: gameRunning = false; break;
+                case ConsoleKey.A:
+                    newPos.X--;
+                    break;
+                case ConsoleKey.D:
+                    newPos.X++;
+                    break;
+                case ConsoleKey.Q:
+                    gameRunning = false;
+                    gameQuit = true;
+                    break;
             }
 
             newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);
@@ -173,6 +179,11 @@ namespace Part2_Tasks
                             gameRunning = false;
                             gameOver = true;
                         }
+
+                        if (asteroid.Position.Y >= WINDOW_HEIGHT)
+                        {
+                            spaceship.Points++;
+                        }
                     }
                 }
                 asteroids.RemoveAll(a => a.Position.Y >= WINDOW_HEIGHT);
@@ -202,6 +213,30 @@ namespace Part2_Tasks
             {
                 Console.SetCursorPosition(position.X, position.Y);
                 Console.Write(sprite);
+            }
+        }
+
+        public static void ResultsScreen()
+        {
+            lock (consoleLock)
+            {
+                Console.Clear();
+                Console.SetCursorPosition(0, 0);
+
+                if (gameOver)
+                    Console.WriteLine("Has Perdut!");
+                else
+                {
+                    if (gameQuit)
+                        Console.WriteLine("Has Sortit!");
+                    else
+                        Console.WriteLine("Has Guanyat!");
+                }
+
+                Console.WriteLine($"Asteroides Esquivats: {spaceship.Points}");
+                Console.WriteLine($"Temps de Joc: {gameClock.ElapsedMilliseconds / 1000} segons");
+                Console.WriteLine("Prem qualsevol tecla per sortir.");
+                Console.ReadKey(true);
             }
         }
     }
