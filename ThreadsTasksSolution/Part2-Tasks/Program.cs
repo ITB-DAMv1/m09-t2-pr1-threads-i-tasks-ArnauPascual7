@@ -174,10 +174,17 @@ namespace Part2_Tasks
                         asteroid.Position = newPos;
                         asteroid.Accel = accel;
 
-                        if (spaceship.Position.X == asteroid.Position.X && spaceship.Position.Y == asteroid.Position.Y)
+                        if (spaceship.Position.Y == asteroid.Position.Y)
                         {
-                            gameRunning = false;
-                            gameOver = true;
+                            if (spaceship.Position.X == asteroid.Position.X)
+                            {
+                                gameRunning = false;
+                                gameOver = true;
+                            }
+                            else if ((spaceship.Position.X == asteroid.Position.X - 1 || spaceship.Position.X == asteroid.Position.X + 1) && asteroid.Accel == 0.2f)
+                            {
+                                Console.Beep(300, 100);
+                            }
                         }
 
                         if (asteroid.Position.Y >= WINDOW_HEIGHT)
