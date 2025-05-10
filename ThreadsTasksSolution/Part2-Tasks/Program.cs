@@ -188,6 +188,7 @@ namespace Part2_Tasks
                             else if ((spaceship.Position.X == asteroid.Position.X - 1 || spaceship.Position.X == asteroid.Position.X + 1) && asteroid.Accel == 0.2f)
                             {
                                 Console.Beep(300, 100);
+                                spaceship.Points++;
                             }
                         }
 
