@@ -13,6 +13,7 @@ namespace Part2_Tasks
         private static bool gameRunning = true;
         private static bool gameOver = false;
         private static bool gameQuit = false;
+        private static bool gameExit = false;
 
         private static Spaceship spaceship;
         private static List<Asteroid> asteroids = new List<Asteroid>();
@@ -26,24 +27,27 @@ namespace Part2_Tasks
 
         public static async Task Main(string[] args)
         {
-            Console.Title = "Asterioids - Arnau Pascual";
-            Console.CursorVisible = false;
+            while (!gameExit)
+            {
+                Console.Title = "Asterioids - Arnau Pascual";
+                Console.CursorVisible = false;
 
-            spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
+                spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
 
-            gameClock.Start();
-            lastRender = gameClock.Elapsed;
-            lastUpdate = gameClock.Elapsed;
+                gameClock.Start();
+                lastRender = gameClock.Elapsed;
+                lastUpdate = gameClock.Elapsed;
 
-            var consoleTask = Task.Run(ConsoleSize);
-            var inputTask = Task.Run(ProcessInput);
-            var spawnTask = Task.Run(SpawnAsteroids);
-            var updateTask = Task.Run(GameLoop);
-            var renderTask = Task.Run(RenderLoop);
+                var consoleTask = Task.Run(ConsoleSize);
+                var inputTask = Task.Run(ProcessInput);
+                var spawnTask = Task.Run(SpawnAsteroids);
+                var updateTask = Task.Run(GameLoop);
+                var renderTask = Task.Run(RenderLoop);
 
-            await Task.WhenAll(inputTask, spawnTask, updateTask, renderTask);
+                await Task.WhenAll(inputTask, spawnTask, updateTask, renderTask);
 
-            ResultsScreen();
+                ResultsScreen();
+            }
         }
 
         private static async Task GameLoop()
@@ -240,10 +244,28 @@ namespace Part2_Tasks
                         Console.WriteLine("Has Guanyat!");
                 }
 
-                Console.WriteLine($"Asteroides Esquivats: {spaceship.Points}");
-                Console.WriteLine($"Temps de Joc: {gameClock.ElapsedMilliseconds / 1000} segons");
-                Console.WriteLine("Prem qualsevol tecla per sortir.");
-                Console.ReadKey(true);
+                Console.WriteLine($"\nAsteroides Esquivats: {spaceship.Points}");
+                Console.WriteLine($"\nTemps de Joc: {gameClock.ElapsedMilliseconds / 1000} segons");
+                Console.WriteLine("\nPrem qualsevol tecla per sortir.");
+                Console.WriteLine("\nPrem Enter per a tornar a jugar");
+
+                var key = Console.ReadKey(true).Key;
+                Console.Clear();
+
+                if (key == ConsoleKey.Enter)
+                {
+                    gameRunning = true;
+                    gameOver = false;
+                    gameQuit = false;
+                    spaceship.Points = 0;
+                    asteroids.Clear();
+                    gameClock.Restart();
+                }
+                else
+                {
+                    gameExit = true;
+                    Console.WriteLine("Adeu");
+                }
             }
         }
     }
