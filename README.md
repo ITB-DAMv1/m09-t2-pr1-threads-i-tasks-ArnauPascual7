@@ -36,7 +36,7 @@ El record de vegades que ha mejat un comesal és de 15 vegades, mentre que el re
 
 ### Consultes IA
 
-> Com puc fer que el repintat de la consola es faci  a 20 Hz i el càlcul de les posicions dels elements del joc a 50Hz en aquest codi:
+> **Com puc fer que el repintat de la consola es faci  a 20 Hz i el càlcul de les posicions dels elements del joc a 50Hz en aquest codi:**
 ```
 private const int WINDOW_WIDTH = 40;
 private const int WINDOW_HEIGHT = 20;
@@ -46,75 +46,75 @@ private static Spaceship spaceship;
 
 public static void Main(string[] args)
 {
-Console.Title = "Asterioids - Arnau Pascual";
-Console.CursorVisible = false;
+    Console.Title = "Asterioids - Arnau Pascual";
+    Console.CursorVisible = false;
 
-spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
-WriteSprite(spaceship.Sprite, spaceship.Position);
+    spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
+    WriteSprite(spaceship.Sprite, spaceship.Position);
 
-Task.Run(ConsoleSize);
-Task.Run(SpaceshipMovement);
+    Task.Run(ConsoleSize);
+    Task.Run(SpaceshipMovement);
 
-while (gameRunning) { }
+    while (gameRunning) { }
 }
 
 public static async Task ConsoleSize()
 {
-while (checkWindowSize)
-{
-if (Console.WindowWidth != WINDOW_WIDTH || Console.WindowHeight != WINDOW_HEIGHT)
-{
-Console.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-Console.SetBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-}
-await Task.Delay(100);
-}
+    while (checkWindowSize)
+    {
+        if (Console.WindowWidth != WINDOW_WIDTH || Console.WindowHeight != WINDOW_HEIGHT)
+    {
+        Console.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        Console.SetBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    }
+    await Task.Delay(100);
+    }
 }
 
 public static async Task SpaceshipMovement()
 {
-Position position = spaceship.Position;
+    Position position = spaceship.Position;
 
-while (gameRunning)
-{
-ConsoleKey key = Console.ReadKey(true).Key;
+    while (gameRunning)
+    {
+        ConsoleKey key = Console.ReadKey(true).Key;
 
-switch (key)
-{
-case ConsoleKey.A:
-position.X--;
-break;
-case ConsoleKey.D:
-position.X++;
-break;
-}
+        switch (key)
+        {
+            case ConsoleKey.A:
+            position.X--;
+            break;
+            case ConsoleKey.D:
+            position.X++;
+            break;
+        }
 
-if (position.X < 1)
-position.X = 1;
-else if (position.X >= WINDOW_WIDTH)
-position.X = WINDOW_WIDTH - 1;
+    if (position.X < 1)
+        position.X = 1;
+    else if (position.X >= WINDOW_WIDTH)
+        position.X = WINDOW_WIDTH - 1;
 
-WriteSprite(spaceship.Sprite, spaceship.Position, position);
+    WriteSprite(spaceship.Sprite, spaceship.Position, position);
 
-spaceship.Position = position;
-}
+    spaceship.Position = position;
+    }
 }
 
 public static void WriteSprite(char sprite, Position oldPosition, Position newPosition)
 {
-CleanSprite(oldPosition);
-WriteSprite(sprite, newPosition);
+    CleanSprite(oldPosition);
+    WriteSprite(sprite, newPosition);
 }
 
 public static void WriteSprite(char sprite, Position position)
 {
-Console.SetCursorPosition(position.X, position.Y);
-Console.Write(sprite);
+    Console.SetCursorPosition(position.X, position.Y);
+    Console.Write(sprite);
 }
 public static void CleanSprite(Position position)
 {
-Console.SetCursorPosition(position.X, position.Y);
-Console.Write(' ');
+    Console.SetCursorPosition(position.X, position.Y);
+    Console.Write(' ');
 }
 ```
 > Resposta
@@ -247,3 +247,187 @@ class Program
     }
 }
 ```
+
+> **Explica'm el codi pas a pas**
+> Resposta
+```
+private const int WINDOW_WIDTH = 40;
+private const int WINDOW_HEIGHT = 20;
+private static bool gameRunning = true;
+private static Spaceship spaceship;
+
+private static Stopwatch gameClock = new Stopwatch();
+private static TimeSpan lastRender;
+private static TimeSpan lastUpdate;
+private static readonly object consoleLock = new object();
+```
+
+> WINDOW_WIDTH / WINDOW_HEIGHT: Dimensions fixes de la finestra de joc.
+> gameRunning: Controla si el joc segueix actiu.
+> spaceship: Referència a la nau (objecte jugador).
+> gameClock: Cronòmetre per mesurar el temps d’execució del joc.
+> lastRender / lastUpdate: Marquen el darrer moment en què s’ha fet renderitzat i càlcul, respectivament.
+> consoleLock: Objecte per sincronitzar l’accés a la consola entre fils.
+
+```
+public static async Task Main(string[] args)
+{
+    Console.Title = "Asterioids - Arnau Pascual";
+    Console.CursorVisible = false;
+    Console.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    Console.SetBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    spaceship = new Spaceship(new Position(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 2));
+    
+    gameClock.Start();
+    lastRender = gameClock.Elapsed;
+    lastUpdate = gameClock.Elapsed;
+
+    var inputTask = Task.Run(ProcessInput);
+    var updateTask = Task.Run(GameLoop);
+    var renderTask = Task.Run(RenderLoop);
+
+    await Task.WhenAll(inputTask, updateTask, renderTask);
+}
+```
+
+> Configura la consola: Títol, cursor invisible i dimensions fixes.
+> Inicialitza la nau al centre inferior de la pantalla.
+> Inicia el cronòmetre i marca el temps actual per a update/render.
+> Llança tres tasques:
+> ProcessInput: Llegeix les tecles de l’usuari.
+> GameLoop: Actualitza la lògica del joc a 50 Hz.
+> RenderLoop: Repinta la consola a 20 Hz.
+> Espera que totes les tasques acabin (quan gameRunning sigui false).
+
+```
+private static async Task GameLoop()
+{
+    const double updateInterval = 1000 / 50.0; // 50 Hz
+    while (gameRunning)
+    {
+        var currentTime = gameClock.Elapsed;
+        var deltaTime = currentTime - lastUpdate;
+        
+        if (deltaTime.TotalMilliseconds >= updateInterval)
+        {
+            UpdateGame(deltaTime);
+            lastUpdate = currentTime;
+        }
+
+        await Task.Delay(1);
+    }
+}
+```
+
+> updateInterval: Cada 20 ms (50 vegades per segon).
+> deltaTime: Temps transcorregut des de l’últim càlcul.
+> UpdateGame: Actualitza la lògica del joc (moviment, col·lisions, etc).
+> Task.Delay(1): Evita consumir tota la CPU.
+
+```
+private static async Task RenderLoop()
+{
+    const double renderInterval = 1000 / 20.0; // 20 Hz
+    while (gameRunning)
+    {
+        var currentTime = gameClock.Elapsed;
+        var deltaTime = currentTime - lastRender;
+        
+        if (deltaTime.TotalMilliseconds >= renderInterval)
+        {
+            lock (consoleLock)
+            {
+                RenderGame();
+            }
+            lastRender = currentTime;
+        }
+
+        await Task.Delay(1);
+    }
+}
+```
+
+> renderInterval: Cada 50 ms (20 vegades per segon).
+> RenderGame: Dibuixa l’estat actual del joc a la consola.
+> lock (consoleLock): Garanteix que només un fil escriu a la consola alhora (evita solapaments visuals).
+> Task.Delay(1): Manté la CPU lliure.
+
+```
+private static async Task ProcessInput()
+{
+    while (gameRunning)
+    {
+        if (Console.KeyAvailable)
+        {
+            var key = Console.ReadKey(true).Key;
+            HandleInput(key);
+        }
+        await Task.Delay(10);
+    }
+}
+```
+
+> Console.KeyAvailable: Comprova si hi ha una tecla premuda (no bloqueja el fil).
+> Console.ReadKey(true): Llegeix la tecla sense mostrar-la.
+> HandleInput: Processa la tecla premuda (moviment nau, sortir, etc).
+> Task.Delay(10): Redueix l’ús de CPU.
+
+```
+private static void HandleInput(ConsoleKey key)
+{
+    Position newPos = spaceship.Position;
+    
+    switch (key)
+    {
+        case ConsoleKey.A: newPos.X--; break;
+        case ConsoleKey.D: newPos.X++; break;
+        case ConsoleKey.Escape: gameRunning = false; break;
+    }
+
+    newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);
+    spaceship.Position = newPos;
+}
+```
+
+> A/D: Mou la nau esquerra/dreta.
+> Escape: Surt del joc.
+> Math.Clamp: Garanteix que la nau no surti dels límits de la pantalla.
+
+```
+private static void UpdateGame(TimeSpan deltaTime)
+{
+    // Aquí aniria la lògica d'actualització dels asteroides, col·lisions, etc.
+}
+
+private static void RenderGame()
+{
+    Console.SetCursorPosition(0, 0);
+    Console.Clear();
+    WriteSprite(spaceship.Sprite, spaceship.Position);
+}
+```
+
+> UpdateGame: Actualitza la lògica del joc (ara només la nau, però pots afegir asteroides, etc.).
+> RenderGame: Esborra la pantalla i dibuixa la nau a la seva posició.
+
+```
+public static void WriteSprite(char sprite, Position position)
+{
+    if (position.X >= 0 && position.X < WINDOW_WIDTH && 
+        position.Y >= 0 && position.Y < WINDOW_HEIGHT)
+    {
+        Console.SetCursorPosition(position.X, position.Y);
+        Console.Write(sprite);
+    }
+}
+```
+
+> Escriu el caràcter de la nau a la posició indicada, només si és dins dels límits de la pantalla.
+
+> **Que es deltaTime**
+> DeltaTime (o tiempo delta) es el tiempo transcurrido entre una actualización y la siguiente en un juego o simulación. Es decir, es la diferencia de tiempo entre el último fotograma (frame) y el actual. Se utiliza para que el movimiento y las animaciones sean independientes de la velocidad de refresco del hardware o del número de frames por segundo (FPS). Por ejemplo, si un objeto debe moverse a 100 píxeles por segundo, multiplicarás esa velocidad por el valor de deltaTime para saber cuánto debe moverse en cada frame, asegurando así que se mueva igual de rápido aunque el juego vaya más lento o más rápido. Ejemplo práctico: Si un frame tarda 0,01 segundos (100 FPS), deltaTime será 0,01. Si tarda 0,1 segundos (10 FPS), deltaTime será 0,1. Así, el movimiento se ajusta automáticamente para que la experiencia sea consistente, sin importar el rendimiento del ordenador. En resumen: DeltaTime sirve para que la lógica y los movimientos de un juego sean consistentes y no dependan de la cantidad de frames por segundo que se estén generando.
+
+> **Has utilitzat això, que és? newPos.X = Math.Clamp(newPos.X, 1, WINDOW_WIDTH - 2);**
+> Sí! Aquesta línia utilitza el mètode estàtic Math.Clamp de .NET per limitar el valor de newPos.X dins d’un rang concret. Què fa exactament? newPos.X: És la posició X (horitzontal) de la nau o objecte. Math.Clamp(valor, mínim, màxim): Retorna valor si està dins del rang [mínim, màxim]. Si valor és menor que mínim, retorna mínim. Si és major que màxim, retorna màxim. En aquest context 1: És el límit esquerre de la pantalla (per evitar sortir per l’esquerra). WINDOW_WIDTH - 2: És el límit dret de la pantalla (per evitar sortir per la dreta). Així, si l’usuari intenta moure la nau més enllà dels límits, la posició quedarà automàticament dins dels marges vàlids. Exemple visual: Si newPos.X = -5, després de la línia serà 1. Si newPos.X = 38 (amb WINDOW_WIDTH = 40), després serà 38. Si newPos.X = 100, després serà 38. Resu Math.Clamp serveix per assegurar que una variable no surti d’un rang permès. Això evita errors de posició i que la nau desaparegui de la pantalla!
+
