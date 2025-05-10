@@ -10,11 +10,13 @@ namespace Part2_Tasks
         private static bool checkWindowSize = true;
         private static bool gameRunning = true;
         private static Spaceship spaceship;
+        private static List<Asteroid> asteroids = new List<Asteroid>();
 
         private static Stopwatch gameClock = new Stopwatch();
         private static TimeSpan lastRender;
         private static TimeSpan lastUpdate;
         private static readonly object consoleLock = new object();
+        private static readonly object asteroidLock = new object();
 
         public static async Task Main(string[] args)
         {
@@ -29,6 +31,7 @@ namespace Part2_Tasks
 
             var consoleTask = Task.Run(ConsoleSize);
             var inputTask = Task.Run(ProcessInput);
+            var spawnTask = Task.Run(SpawnAsteroids);
             var updateTask = Task.Run(GameLoop);
             var renderTask = Task.Run(RenderLoop);
 
@@ -117,16 +120,61 @@ namespace Part2_Tasks
             spaceship.Position = newPos;
         }
 
+        private static async Task SpawnAsteroids()
+        {
+            while (gameRunning)
+            {
+                var x = Random.Shared.Next(1, WINDOW_WIDTH - 2);
+                var y = 0;
+
+                lock (asteroidLock)
+                {
+                    asteroids.Add(new Asteroid(new Position(x, y)));
+                }
+
+                await Task.Delay(Random.Shared.Next(100, 1000));
+            }
+        }
+
         private static void UpdateGame(TimeSpan deltaTime)
         {
-            // Logic
+            lock (asteroidLock)
+            {
+                foreach (var asteroid in asteroids)
+                {
+                    if (asteroid != null)
+                    {
+                        Position newPos = asteroid.Position;
+                        float accel = asteroid.Accel;
+
+                        accel += 0.2f;
+
+                        newPos.Y += (int)accel;
+
+                        if (accel >= 1) accel = 0.2f;
+
+                        asteroid.Position = newPos;
+                        asteroid.Accel = accel;
+                    }
+                }
+                asteroids.RemoveAll(a => a.Position.Y >= WINDOW_HEIGHT);
+            }
         }
 
         private static void RenderGame()
         {
             Console.SetCursorPosition(0, 0);
             Console.Clear();
+            
             WriteSprite(spaceship.Sprite, spaceship.Position);
+
+            lock (asteroidLock)
+            {
+                foreach (var asteroid in asteroids)
+                {
+                    WriteSprite(asteroid.Sprite, asteroid.Position);
+                }
+            }
         }
 
         public static void WriteSprite(char sprite, Position position)
